@@ -71,6 +71,11 @@
     border: 1px solid #ccc;
     background: #f9f9f9;
   }
+  select:disabled {
+    background: #eee;
+    color: #aaa;
+    cursor: not-allowed;
+  }
   .control {
     display: flex;
     justify-content: center;
@@ -91,6 +96,10 @@
   }
   .control button:hover {
     background: #0056b3;
+  }
+  .control button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
   }
 </style>
 </head>
@@ -136,8 +145,8 @@
     </div>
 
     <div class="control">
-      <button onclick="tempDown()">−</button>
-      <button onclick="tempUp()">＋</button>
+      <button id="btnDown" onclick="tempDown()">−</button>
+      <button id="btnUp" onclick="tempUp()">＋</button>
     </div>
   </div>
 
@@ -170,9 +179,18 @@
     }
 
     function updateUI() {
+      // 설정온도 표시 (전원 꺼지면 숨김)
       document.getElementById("setTemp").textContent = power ? Math.round(setTemp) + ".0°" : "--°";
+
+      // 모드/팬 UI 반영
       document.getElementById("mode").value = mode;
       document.getElementById("fan").value = fan;
+
+      // 전원 꺼짐 시 조작 제한 (실내온도/습도는 계속 업데이트)
+      document.getElementById("mode").disabled = !power;
+      document.getElementById("fan").disabled = !power;
+      document.getElementById("btnUp").disabled = !power;
+      document.getElementById("btnDown").disabled = !power;
     }
 
     function togglePower() {
@@ -230,7 +248,9 @@
                 currentHumidity = data.hourly.relativehumidity_2m[nowIndex];
                 document.getElementById("roomHumidity").textContent = currentHumidity + "%";
               }
-              if (mode === "자동") autoControl();
+
+              // 자동 모드 동작은 전원이 켜져 있을 때만
+              if (power && mode === "자동") autoControl();
             })
             .catch(() => {
               document.getElementById("roomTemp").textContent = "오류";
@@ -246,7 +266,7 @@
       }
     }
 
-    // 🤖 자동 모드 제어 로직 (제습 포함)
+    // 🤖 자동 모드 제어 로직
     function autoControl() {
       if (!power || currentTemp === null) return;
 
@@ -274,3 +294,7 @@
   </script>
 </body>
 </html>
+
+</body>
+</html>
+
